@@ -8,8 +8,7 @@
     <!-- 引入 Tailwind CSS 配置 (必须在加载 CDN 脚本之前) -->
     <script>
         // 🚨 核心修复：将所有配置合并到一个对象，并使用 window.tailwindConfig
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
+        window.tailwindConfig = {
             // 启用暗黑模式支持
             darkMode: 'class', 
             theme: {
@@ -146,126 +145,9 @@
         }
     </style>
     <!-- 引入 Tailwind CSS CDN 脚本 (在配置和自定义样式之后) -->
-    <!-- 直接使用内联备用样式，确保页面始终有样式 -->
-    <style id="backup-tailwind-styles">
-        .bg-gray-900 { background-color: #111827; }
-        .text-gray-100 { color: #f3f4f6; }
-        .p-4 { padding: 1rem; }
-        .p-8 { padding: 2rem; }
-        .rounded-xl { border-radius: 0.75rem; }
-        .border { border-width: 1px; }
-        .hidden { display: none !important; }
-        .flex { display: flex; }
-        .w-full { width: 100%; }
-        .w-6 { width: 1.5rem; }
-        .h-6 { height: 1.5rem; }
-        .mt-4 { margin-top: 1rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mt-2 { margin-top: 0.5rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: 700; }
-        .text-xl { font-size: 1.25rem; }
-        .text-sm { font-size: 0.875rem; }
-        .text-xs { font-size: 0.75rem; }
-        .space-y-4 > * + * { margin-top: 1rem; }
-        .space-y-2 > * + * { margin-top: 0.5rem; }
-        .space-x-2 > * + * { margin-left: 0.5rem; }
-        .space-x-3 > * + * { margin-left: 0.75rem; }
-        .transition { transition-property: all; transition-duration: 150ms; }
-        .hover\:bg-gray-600:hover { background-color: #4b5563; }
-        .hover\:bg-blue-500:hover { background-color: #3b82f6; }
-        .hover\:bg-green-500:hover { background-color: #22c55e; }
-        .hover\:bg-purple-500:hover { background-color: #a855f7; }
-        .hover\:text-white:hover { color: #ffffff; }
-        .bg-blue-600 { background-color: #2563eb; }
-        .bg-green-600 { background-color: #16a34a; }
-        .bg-purple-600 { background-color: #9333ea; }
-        .bg-gray-700 { background-color: #374151; }
-        .bg-gray-800 { background-color: #1f2937; }
-        .bg-yellow-900\/30 { background-color: rgba(113, 63, 18, 0.3); }
-        .border-gray-600 { border-color: #4b5563; }
-        .border-yellow-600\/50 { border-color: rgba(202, 138, 4, 0.5); }
-        .text-white { color: #ffffff; }
-        .text-red-400 { color: #f87171; }
-        .text-green-400 { color: #4ade80; }
-        .text-blue-400 { color: #60a5fa; }
-        .text-yellow-400 { color: #facc15; }
-        .text-yellow-300 { color: #fde047; }
-        .text-gray-400 { color: #9ca3af; }
-        .text-gray-300 { color: #d1d5db; }
-        .text-blue-300 { color: #93c5fd; }
-        .text-green-300 { color: #86efac; }
-        .text-red-300 { color: #fca5a5; }
-        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .px-4 { padding-left: 1rem; padding-right: 1rem; }
-        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-        .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
-        .rounded { border-radius: 0.25rem; }
-        .cursor-pointer { cursor: pointer; }
-        .min-h-screen { min-height: 100vh; }
-        .max-w-4xl { max-width: 56rem; }
-        .mx-auto { margin-left: auto; margin-right: auto; }
-        .justify-between { justify-content: space-between; }
-        .items-center { align-items: center; }
-        .flex-1 { flex: 1 1 0%; }
-        .relative { position: relative; }
-        .absolute { position: absolute; }
-        .top-4 { top: 1rem; }
-        .right-4 { right: 1rem; }
-        .z-50 { z-index: 50; }
-        .opacity-0 { opacity: 0; }
-        .pointer-events-none { pointer-events: none; }
-        .focus\:ring-blue-500:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
-        .focus\:border-blue-500:focus { border-color: #3b82f6; }
-        .disabled\:opacity-50:disabled { opacity: 0.5; }
-        .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
-        button { padding: 0.5rem 1rem; border-radius: 0.75rem; border: none; cursor: pointer; }
-        input, textarea { padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #4b5563; background-color: #374151; color: #f3f4f6; }
-        input:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
-    </style>
-    
-    <!-- 完全自包含的样式方案，不依赖任何外部CDN -->
-    <script>
-        console.log('使用完全自包含的样式方案，无需外部CDN');
-    </script>
-    
-    <!-- 内联简化Markdown解析器，替代marked.js CDN -->
-    <script>
-        // 简化的Markdown解析器，支持基本格式
-        const marked = {
-            parse: function(text) {
-                if (!text) return '';
-                
-                return text
-                    // 粗体 **text** 或 __text__
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/__(.*?)__/g, '<strong>$1</strong>')
-                    // 斜体 *text* 或 _text_
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/_(.*?)_/g, '<em>$1</em>')
-                    // 代码 `code`
-                    .replace(/`(.*?)`/g, '<code>$1</code>')
-                    // 链接 [text](url)
-                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                    // 换行
-                    .replace(/\n/g, '<br>')
-                    // 标题 # ## ###
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                    // 列表项 - item 或 * item
-                    .replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>')
-                    // 包装连续的li为ul
-                    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-                    // 清理多余的ul标签
-                    .replace(/<\/ul>\s*<ul>/g, '');
-            }
-        };
-        
-        console.log('内联Markdown解析器已加载');
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CRITICAL FIX: 引入 marked 库用于 Markdown 渲染 (在所有样式之后) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
 </head>
 
@@ -281,90 +163,6 @@
         <button id="theme-toggle-btn" onclick="toggleTheme()" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-gray-700 text-white shadow-lg hover:bg-gray-600 transition duration-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
         </button>
-
-        <!-- NEW: API密钥设置按钮 -->
-        <button id="api-settings-btn" onclick="toggleApiSettings()" class="fixed top-4 right-20 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-500 transition duration-300" title="API密钥设置">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-        </button>
-
-        <!-- NEW: API密钥设置面板 (默认隐藏) -->
-        <div id="api-settings-panel" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
-            <div class="flex items-center justify-center min-h-screen p-4">
-                <div class="bg-gray-800 rounded-2xl shadow-2xl border border-gray-600 w-full max-w-md">
-                    <div class="p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-white">API密钥设置</h3>
-                            <button onclick="toggleApiSettings()" class="text-gray-400 hover:text-white transition duration-200">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label for="api-key-input" class="block text-sm font-medium text-gray-300 mb-2">
-                                    Google AI Studio API密钥
-                                </label>
-                                <input 
-                                    type="password" 
-                                    id="api-key-input" 
-                                    placeholder="输入您的API密钥 (gen-lang-client-...)" 
-                                    class="w-full bg-gray-700 border border-gray-600 text-gray-100 p-3 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                                >
-                                <div id="api-key-status" class="mt-2 text-sm"></div>
-                            </div>
-                            
-                            <div class="bg-gray-700 p-4 rounded-xl">
-                                <h4 class="text-sm font-medium text-gray-300 mb-2">📋 获取API密钥步骤：</h4>
-                                <ol class="text-xs text-gray-400 space-y-1">
-                                    <li>1. 访问 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-400 hover:text-blue-300">Google AI Studio</a></li>
-                                    <li>2. 创建新的API密钥</li>
-                                    <li>3. 选择"浏览器密钥"类型</li>
-                                    <li>4. 在允许域名中添加：<code id="current-domain" class="bg-gray-600 px-1 rounded text-xs"></code></li>
-                                    <li>5. 复制密钥并粘贴到上方输入框</li>
-                                </ol>
-                                <div class="mt-3 p-2 bg-yellow-900/30 border border-yellow-600/50 rounded text-xs text-yellow-300">
-                                    ⚠️ 重要：必须在Google AI Studio中添加上述域名，否则API调用会被拒绝
-                                </div>
-                            </div>
-                            
-                            <div class="flex space-x-2">
-                                <button 
-                                    id="test-api-key-btn" 
-                                    onclick="testApiKey()" 
-                                    class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-xl transition duration-200 text-sm"
-                                >
-                                    测试连接
-                                </button>
-                                <button 
-                                    id="diagnose-api-btn" 
-                                    onclick="diagnoseApiKey()" 
-                                    class="bg-purple-600 hover:bg-purple-500 text-white py-2 px-3 rounded-xl transition duration-200 text-sm"
-                                >
-                                    诊断
-                                </button>
-                                <button 
-                                    id="save-api-key-btn" 
-                                    onclick="saveApiKey()" 
-                                    class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded-xl transition duration-200 text-sm"
-                                >
-                                    保存密钥
-                                </button>
-                            </div>
-                            
-                            <!-- 诊断信息区域 -->
-                            <div id="api-diagnosis" class="mt-4 p-4 bg-gray-800 rounded-xl border border-gray-600 hidden">
-                                <h4 class="text-sm font-medium text-gray-300 mb-3">🔍 API密钥诊断信息</h4>
-                                <div id="diagnosis-content" class="text-xs text-gray-400 space-y-2">
-                                    <!-- 诊断内容将在这里动态生成 -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- 输入表单区域 (默认激活，不带 page-inactive) -->
         <div id="input-form-container" class="bg-secondary p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700">
@@ -738,23 +536,19 @@
         </script>
 
     </div>
-
     <script>
         // 全局变量和配置
-        let API_KEY = (localStorage.getItem('gemini_api_key') || "gen-lang-client-0412306217").trim(); // 优先使用本地存储的浏览器密钥
+        const API_KEY = "gen-lang-client-0412306217"; // Canvas会自动填充API Key
 
         // NEW: 集中配置常量
         const CONFIG = {
             apiKey: API_KEY,
             endpoints: {
-                // 使用 Header 传递 API Key，避免 URL 参数导致的拦截/预检异常
-                text: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`,
-                image: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent`
+                text: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`,
+                image: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${API_KEY}`
             },
             request: {
-                // 调试期禁用超时，避免浏览器主动中断请求
-                textTimeoutMs: 0,
-                imageTimeoutMs: 0,
+                timeoutMs: 15000,
                 retry: {
                     maxRetries: 5,
                     baseDelayMs: 1000,
@@ -767,16 +561,6 @@
                 allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp']
             }
         };
-
-        // API Key 校验（仅浏览器密钥，需以 gen-lang-client- 开头）
-        function validateApiKey(key) {
-            if (!key || !key.trim()) return { ok: false, reason: '未配置 API Key' };
-            const trimmed = key.trim();
-            if (!trimmed.startsWith('gen-lang-client-')) {
-                return { ok: false, reason: 'API Key 格式不正确（需以 gen-lang-client- 开头的浏览器密钥）' };
-            }
-            return { ok: true };
-        }
 
         // 兼容旧用法的常量（保持现有调用不崩）
         const GEMINI_API_URL = CONFIG.endpoints.text;
@@ -972,13 +756,10 @@
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     // 超时控制
-                    const timeoutMs = url.includes(CONFIG.endpoints.image)
-                        ? CONFIG.request.imageTimeoutMs
-                        : CONFIG.request.textTimeoutMs;
-                    const controller = timeoutMs > 0 ? new AbortController() : null;
-                    const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
-                    const response = await fetch(url, { ...options, signal: controller ? controller.signal : undefined });
-                    if (timeoutId) clearTimeout(timeoutId);
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), CONFIG.request.timeoutMs);
+                    const response = await fetch(url, { ...options, signal: controller.signal });
+                    clearTimeout(timeoutId);
                     let responseText = await response.text(); 
                     
                     if (!response.ok) {
@@ -1015,13 +796,6 @@
                     // 超时特殊提示
                     if (error.name === 'AbortError') {
                         if (i === maxRetries - 1) throw new Error('请求超时，请稍后重试。');
-                    }
-                    // 浏览器或网络层中断（如插件拦截、CORS 预检失败、网络阻断）
-                    const msg = String(error && (error.message || error.toString())).toUpperCase();
-                    if (msg.includes('ERR_ABORTED') || msg.includes('FAILED TO FETCH')) {
-                        if (i === maxRetries - 1) {
-                            throw new Error('网络请求被中断或拦截。请检查：1) 关闭广告/安全拦截插件；2) 确认 AI Studio 的浏览器密钥允许 http://localhost；3) 网络代理或防火墙设置；必要时使用服务端代理。');
-                        }
                     }
                     if (i === maxRetries - 1) throw error;
                     // 解析 429 等状态进行更长退避
@@ -1243,12 +1017,7 @@
 
             const options = {
                 method: 'POST',
-                mode: 'cors',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'x-goog-api-key': API_KEY
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             };
 
@@ -1319,12 +1088,7 @@
 
             const options = {
                 method: 'POST',
-                mode: 'cors',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'x-goog-api-key': API_KEY
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             };
             
@@ -1505,15 +1269,6 @@
             if (!validateForm()) {
                 return;
             }
-
-            // 校验并加载浏览器密钥
-            API_KEY = (localStorage.getItem('gemini_api_key') || API_KEY).trim();
-            const v = validateApiKey(API_KEY);
-            if (!v.ok) {
-                showError(`授权错误：${v.reason}。请在 AI Studio 的浏览器密钥设置中配置，并在允许域名中添加 http://localhost。`);
-                submitBtn.disabled = false;
-                return;
-            }
             
             // 重置进度
             currentProcessStep = 0;
@@ -1625,230 +1380,6 @@
             formContainer.insertBefore(alertDiv, formContainer.firstChild);
             setTimeout(() => alertDiv.remove(), 5000);
         }
-
-        // NEW: API密钥设置相关函数
-        function toggleApiSettings() {
-            const panel = document.getElementById('api-settings-panel');
-            const input = document.getElementById('api-key-input');
-            const domainElement = document.getElementById('current-domain');
-            
-            if (panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                // 显示当前域名
-                domainElement.textContent = window.location.origin;
-                // 加载当前保存的API密钥
-                const savedKey = localStorage.getItem('gemini_api_key') || '';
-                input.value = savedKey;
-                updateApiKeyStatus(savedKey);
-            } else {
-                panel.classList.add('hidden');
-            }
-        }
-
-        function updateApiKeyStatus(apiKey) {
-            const statusDiv = document.getElementById('api-key-status');
-            const validation = validateApiKey(apiKey);
-            
-            if (!apiKey) {
-                statusDiv.innerHTML = '<span class="text-gray-400">请输入API密钥</span>';
-            } else if (validation.ok) {
-                statusDiv.innerHTML = '<span class="text-green-400">✓ 密钥格式正确</span>';
-            } else {
-                statusDiv.innerHTML = `<span class="text-red-400">✗ ${validation.reason}</span>`;
-            }
-        }
-
-        async function testApiKey() {
-            const input = document.getElementById('api-key-input');
-            const testBtn = document.getElementById('test-api-key-btn');
-            const statusDiv = document.getElementById('api-key-status');
-            
-            const apiKey = input.value.trim();
-            if (!apiKey) {
-                statusDiv.innerHTML = '<span class="text-red-400">请先输入API密钥</span>';
-                return;
-            }
-
-            testBtn.disabled = true;
-            testBtn.textContent = '测试中...';
-            statusDiv.innerHTML = '<span class="text-blue-400">🔄 正在测试连接...</span>';
-
-            // 添加调试信息
-            console.log('🔑 测试API密钥:', apiKey.substring(0, 20) + '...');
-            console.log('🌐 当前域名:', window.location.origin);
-            console.log('📡 测试端点:', CONFIG.endpoints.text);
-
-            try {
-                // 发送一个简单的测试请求
-                const response = await fetch(CONFIG.endpoints.text, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-goog-api-key': apiKey
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: "测试连接" }]
-                        }]
-                    })
-                });
-
-                console.log('📡 API测试响应:', response.status, response.statusText);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ API测试成功:', data);
-                    statusDiv.innerHTML = '<span class="text-green-400">✓ 连接成功！API密钥有效</span>';
-                } else {
-                    const errorData = await response.text();
-                    console.error('❌ API测试错误详情:', errorData);
-                    
-                    let errorMessage = '';
-                    try {
-                        const errorJson = JSON.parse(errorData);
-                        if (errorJson.error && errorJson.error.message) {
-                            errorMessage = errorJson.error.message;
-                        }
-                    } catch (e) {
-                        errorMessage = errorData;
-                    }
-                    
-                    if (response.status === 400) {
-                        statusDiv.innerHTML = `<span class="text-red-400">✗ API密钥无效或格式错误<br><small class="text-gray-400">${errorMessage}</small></span>`;
-                    } else if (response.status === 403) {
-                        statusDiv.innerHTML = `<span class="text-red-400">✗ 域名未授权，请在AI Studio中添加：<br><code class="bg-gray-600 px-1 rounded text-xs">${window.location.origin}</code><br><small class="text-gray-400">${errorMessage}</small></span>`;
-                    } else {
-                        statusDiv.innerHTML = `<span class="text-red-400">✗ 连接失败 (${response.status})<br><small class="text-gray-400">${errorMessage}</small></span>`;
-                    }
-                }
-            } catch (error) {
-                console.error('🚫 API测试失败:', error);
-                statusDiv.innerHTML = `<span class="text-red-400">✗ 网络连接失败<br><small class="text-gray-400">${error.message}</small></span>`;
-            } finally {
-                testBtn.disabled = false;
-                testBtn.textContent = '测试连接';
-            }
-        }
-
-        function saveApiKey() {
-            const input = document.getElementById('api-key-input');
-            const saveBtn = document.getElementById('save-api-key-btn');
-            const statusDiv = document.getElementById('api-key-status');
-            
-            const apiKey = input.value.trim();
-            const validation = validateApiKey(apiKey);
-            
-            if (!validation.ok) {
-                statusDiv.innerHTML = `<span class="text-red-400">✗ ${validation.reason}</span>`;
-                return;
-            }
-
-            // 保存到localStorage
-            localStorage.setItem('gemini_api_key', apiKey);
-            
-            // 更新全局API_KEY变量
-            API_KEY = apiKey;
-            
-            // 显示成功消息
-            statusDiv.innerHTML = '<span class="text-green-400">✓ API密钥已保存</span>';
-            saveBtn.textContent = '已保存';
-            
-            setTimeout(() => {
-                saveBtn.textContent = '保存密钥';
-                toggleApiSettings(); // 关闭面板
-            }, 1500);
-        }
-
-        function diagnoseApiKey() {
-            const input = document.getElementById('api-key-input');
-            const diagnosisPanel = document.getElementById('api-diagnosis');
-            const diagnosisContent = document.getElementById('diagnosis-content');
-            const diagnoseBtn = document.getElementById('diagnose-api-btn');
-            
-            const apiKey = input.value.trim();
-            
-            diagnoseBtn.disabled = true;
-            diagnoseBtn.textContent = '诊断中...';
-            diagnosisPanel.classList.remove('hidden');
-            
-            // 收集诊断信息
-            const diagnostics = [];
-            
-            // 1. 基本信息
-            diagnostics.push(`<div class="flex justify-between"><span>当前域名:</span><span class="text-blue-300">${window.location.origin}</span></div>`);
-            diagnostics.push(`<div class="flex justify-between"><span>API密钥长度:</span><span class="text-blue-300">${apiKey.length} 字符</span></div>`);
-            
-            // 2. 格式验证
-            const validation = validateApiKey(apiKey);
-            if (validation.ok) {
-                diagnostics.push(`<div class="flex justify-between"><span>密钥格式:</span><span class="text-green-300">✓ 正确</span></div>`);
-            } else {
-                diagnostics.push(`<div class="flex justify-between"><span>密钥格式:</span><span class="text-red-300">✗ ${validation.reason}</span></div>`);
-            }
-            
-            // 3. 本地存储状态
-            const savedKey = localStorage.getItem('gemini_api_key');
-            if (savedKey) {
-                const isSame = savedKey === apiKey;
-                diagnostics.push(`<div class="flex justify-between"><span>本地存储:</span><span class="text-${isSame ? 'green' : 'yellow'}-300">${isSame ? '✓ 已保存' : '⚠ 与输入不同'}</span></div>`);
-            } else {
-                diagnostics.push(`<div class="flex justify-between"><span>本地存储:</span><span class="text-gray-300">未保存</span></div>`);
-            }
-            
-            // 4. 网络环境检查
-            diagnostics.push(`<div class="flex justify-between"><span>用户代理:</span><span class="text-blue-300">${navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Firefox') ? 'Firefox' : '其他'}</span></div>`);
-            diagnostics.push(`<div class="flex justify-between"><span>协议:</span><span class="text-blue-300">${window.location.protocol}</span></div>`);
-            
-            // 5. 常见问题检查
-            const commonIssues = [];
-            if (!apiKey.startsWith('gen-lang-client-')) {
-                commonIssues.push('❌ 密钥格式错误，应使用浏览器密钥（gen-lang-client-开头）');
-            }
-            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-                commonIssues.push('❌ 非HTTPS协议可能导致API调用失败');
-            }
-            if (apiKey.length < 30) {
-                commonIssues.push('❌ 密钥长度异常，可能不完整');
-            }
-            
-            if (commonIssues.length > 0) {
-                diagnostics.push('<div class="border-t border-gray-600 pt-2 mt-2">');
-                diagnostics.push('<div class="text-yellow-300 font-medium mb-1">发现的问题:</div>');
-                commonIssues.forEach(issue => {
-                    diagnostics.push(`<div class="text-red-300 text-xs">${issue}</div>`);
-                });
-                diagnostics.push('</div>');
-            } else {
-                diagnostics.push('<div class="border-t border-gray-600 pt-2 mt-2">');
-                diagnostics.push('<div class="text-green-300 font-medium">✓ 未发现明显问题</div>');
-                diagnostics.push('</div>');
-            }
-            
-            // 6. 建议操作
-            diagnostics.push('<div class="border-t border-gray-600 pt-2 mt-2">');
-            diagnostics.push('<div class="text-blue-300 font-medium mb-1">建议操作:</div>');
-            diagnostics.push('<div class="text-xs">1. 确保在Google AI Studio中添加了当前域名</div>');
-            diagnostics.push('<div class="text-xs">2. 使用"测试连接"验证密钥有效性</div>');
-            diagnostics.push('<div class="text-xs">3. 检查浏览器控制台是否有错误信息</div>');
-            diagnostics.push('</div>');
-            
-            diagnosisContent.innerHTML = diagnostics.join('');
-            
-            setTimeout(() => {
-                diagnoseBtn.disabled = false;
-                diagnoseBtn.textContent = '诊断';
-            }, 1000);
-        }
-
-        // 为API密钥输入框添加实时验证
-        document.addEventListener('DOMContentLoaded', function() {
-            const input = document.getElementById('api-key-input');
-            if (input) {
-                input.addEventListener('input', function() {
-                    updateApiKeyStatus(this.value.trim());
-                });
-            }
-        });
         
         window.onload = () => {
              // 默认折叠所有指引内容
