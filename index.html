@@ -8,7 +8,8 @@
     <!-- 引入 Tailwind CSS 配置 (必须在加载 CDN 脚本之前) -->
     <script>
         // 🚨 核心修复：将所有配置合并到一个对象，并使用 window.tailwindConfig
-        window.tailwindConfig = {
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
             // 启用暗黑模式支持
             darkMode: 'class', 
             theme: {
@@ -536,19 +537,23 @@
         </script>
 
     </div>
+
     <script>
         // 全局变量和配置
-        const API_KEY = "gen-lang-client-0412306217"; // Canvas会自动填充API Key
+        let API_KEY = (localStorage.getItem('gemini_api_key') || "gen-lang-client-0412306217").trim(); // 优先使用本地存储的浏览器密钥
 
         // NEW: 集中配置常量
         const CONFIG = {
             apiKey: API_KEY,
             endpoints: {
-                text: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`,
-                image: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${API_KEY}`
+                // 使用 Header 传递 API Key，避免 URL 参数导致的拦截/预检异常
+                text: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`,
+                image: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent`
             },
             request: {
-                timeoutMs: 15000,
+                // 调试期禁用超时，避免浏览器主动中断请求
+                textTimeoutMs: 0,
+                imageTimeoutMs: 0,
                 retry: {
                     maxRetries: 5,
                     baseDelayMs: 1000,
@@ -561,6 +566,16 @@
                 allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp']
             }
         };
+
+        // API Key 校验（仅浏览器密钥，需以 gen-lang-client- 开头）
+        function validateApiKey(key) {
+            if (!key || !key.trim()) return { ok: false, reason: '未配置 API Key' };
+            const trimmed = key.trim();
+            if (!trimmed.startsWith('gen-lang-client-')) {
+                return { ok: false, reason: 'API Key 格式不正确（需以 gen-lang-client- 开头的浏览器密钥）' };
+            }
+            return { ok: true };
+        }
 
         // 兼容旧用法的常量（保持现有调用不崩）
         const GEMINI_API_URL = CONFIG.endpoints.text;
@@ -756,10 +771,13 @@
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     // 超时控制
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), CONFIG.request.timeoutMs);
-                    const response = await fetch(url, { ...options, signal: controller.signal });
-                    clearTimeout(timeoutId);
+                    const timeoutMs = url.includes(CONFIG.endpoints.image)
+                        ? CONFIG.request.imageTimeoutMs
+                        : CONFIG.request.textTimeoutMs;
+                    const controller = timeoutMs > 0 ? new AbortController() : null;
+                    const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+                    const response = await fetch(url, { ...options, signal: controller ? controller.signal : undefined });
+                    if (timeoutId) clearTimeout(timeoutId);
                     let responseText = await response.text(); 
                     
                     if (!response.ok) {
@@ -796,6 +814,13 @@
                     // 超时特殊提示
                     if (error.name === 'AbortError') {
                         if (i === maxRetries - 1) throw new Error('请求超时，请稍后重试。');
+                    }
+                    // 浏览器或网络层中断（如插件拦截、CORS 预检失败、网络阻断）
+                    const msg = String(error && (error.message || error.toString())).toUpperCase();
+                    if (msg.includes('ERR_ABORTED') || msg.includes('FAILED TO FETCH')) {
+                        if (i === maxRetries - 1) {
+                            throw new Error('网络请求被中断或拦截。请检查：1) 关闭广告/安全拦截插件；2) 确认 AI Studio 的浏览器密钥允许 http://localhost；3) 网络代理或防火墙设置；必要时使用服务端代理。');
+                        }
                     }
                     if (i === maxRetries - 1) throw error;
                     // 解析 429 等状态进行更长退避
@@ -1017,7 +1042,12 @@
 
             const options = {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'x-goog-api-key': API_KEY
+                },
                 body: JSON.stringify(payload)
             };
 
@@ -1088,7 +1118,12 @@
 
             const options = {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'x-goog-api-key': API_KEY
+                },
                 body: JSON.stringify(payload)
             };
             
@@ -1267,6 +1302,15 @@
             
             // 表单校验
             if (!validateForm()) {
+                return;
+            }
+
+            // 校验并加载浏览器密钥
+            API_KEY = (localStorage.getItem('gemini_api_key') || API_KEY).trim();
+            const v = validateApiKey(API_KEY);
+            if (!v.ok) {
+                showError(`授权错误：${v.reason}。请在 AI Studio 的浏览器密钥设置中配置，并在允许域名中添加 http://localhost。`);
+                submitBtn.disabled = false;
                 return;
             }
             
