@@ -35,6 +35,13 @@
             overflow-x: hidden;
             transition: background-color 0.3s;
         }
+        
+        /* 修复页面整体样式 */
+        .max-w-4xl {
+            max-width: 56rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
         /* 自定义滚动条样式 (深色模式) */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1f2937; }
@@ -148,8 +155,8 @@
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10">
-            <h1 class="4xl:text-5xl font-extrabold text-primary mb-2">🌍 地球OL：我的角色手册</h1>
-            <p class="xl text-gray-400">输入你的“角色属性”，获取专属成长攻略！</p>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-primary mb-2">🌍 地球OL：我的角色手册</h1>
+            <p class="text-xl text-gray-400">输入你的"角色属性"，获取专属成长攻略！</p>
         </header>
         
         <!-- NEW: 主题切换按钮 -->
@@ -934,7 +941,8 @@
                                     "fit_percentage": { "type": "INTEGER", "description": "适配度百分比 (0-100)。" }
                                 },
                                 "required": ["name", "fit_percentage"]
-                            "fit_percentage": { "type": "INTEGER", "description": "适配度百分比 (0-100)。" }
+                            }, // FIX: Correctly close realistic_persona and add comma before next property
+                            // The redundant "fit_percentage" property was removed in the previous fix.
                         },
                         "required": ["fantasy_role", "realistic_persona"]
                     },
