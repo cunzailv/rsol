@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地球OL：我的角色手册</title>
+    
+    <!-- 引入 Tailwind CSS 配置 (必须在加载 CDN 脚本之前) -->
+    <script>
+        // 🚨 核心修复：将所有配置合并到一个对象，并使用 window.tailwindConfig
+        window.tailwindConfig = {
+            // 启用暗黑模式支持
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4f46e5',
+                        'secondary': '#1f2937',
+                        'accent': '#10b981',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
+                    }
+                }
+            }
+        };
+    </script>
+    
+    <!-- CRITICAL FIX: 样式和 CDN 必须在主脚本之前，但 CSS 应该在 Tailwind CDN 之前 -->
+    <style>
+        /* 强制使用 Inter 和中文字体 */
+        body { 
+            font-family: 'Inter', 'Noto Sans SC', sans-serif; 
+            /* FIX: 防止任何元素在 x 轴上溢出，避免布局错乱 */
+            overflow-x: hidden;
+            transition: background-color 0.3s;
+        }
+        /* 自定义滚动条样式 (深色模式) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        
+        /* ⚠️ CRITICAL FIX: Markdown 渲染后的样式优化 (强制增加垂直间距) */
+        .markdown-content > * {
+            /* 强制增加段落和块级元素的间距 */
+            margin-top: 1rem !important; 
+            margin-bottom: 1rem !important;
+            line-height: 1.6;
+        }
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5rem;
+            padding-left: 0;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .markdown-content ul {
+            list-style-type: disc;
+        }
+        .markdown-content ol {
+            list-style-type: decimal;
+        }
+        .markdown-content li {
+            /* 强制增加列表项间距 */
+            margin-bottom: 0.6rem !important;
+        }
+        .markdown-content strong {
+            font-weight: 700;
+        }
+        
+        /* 轮播图容器的自定义样式 (FIXED: 针对 2 张图) */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.75rem; /* rounded-xl */
+        }
+        .carousel-track {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+            width: 200%; /* 2 slides * 100% */
+        }
+        .carousel-slide {
+            flex-shrink: 0;
+            width: calc(100% / 2); /* 100% / 2 slides */
+            /* FIX: 确保 slide 占据完整高度 */
+            height: 100%; 
+        }
+        .carousel-slide img {
+             /* FIX: 确保图片占据 slide 完整高度 */
+            height: 100%; 
+        }
+        .carousel-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 0.5rem;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 9999px; /* rounded-full */
+        }
+
+        /* NEW UX: 折叠面板过渡动画 */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+        .collapsible-content.active {
+            max-height: 1000px; /* 必须设置一个足够大的值 */
+        }
+
+        /* NEW UX: 角色卡片阴影高亮 */
+        #fantasy-role-card {
+             box-shadow: 0 0 15px rgba(79, 70, 229, 0.4); /* Primary color shadow */
+        }
+        #realistic-role-card {
+             box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); /* Accent color shadow */
+        }
+        
+        /* 针对行动计划列表的修正 */
+        #plan-list li {
+            list-style: none !important; /* 强制移除 Markdown 产生的默认列表点 */
+            margin-bottom: 1rem !important; /* 强制增加行间距 */
+        }
+
+        /* 适配度进度条动画 */
+        .progress-bar {
+            transition: width 1s ease-out;
+        }
+        
+        /* 页面切换的 CSS 基础 */
+        .page-inactive {
+            display: none !important; 
+            opacity: 0; 
+            pointer-events: none;
+        }
+    </style>
+    <!-- 引入 Tailwind CSS CDN 脚本 (在配置和自定义样式之后) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CRITICAL FIX: 引入 marked 库用于 Markdown 渲染 (在所有样式之后) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 sm:p-8" data-theme="dark">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="4xl:text-5xl font-extrabold text-primary mb-2">🌍 地球OL：我的角色手册</h1>
+            <p class="xl text-gray-400">输入你的“角色属性”，获取专属成长攻略！</p>
+        </header>
+        
+        <!-- NEW: 主题切换按钮 -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-gray-700 text-white shadow-lg hover:bg-gray-600 transition duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </button>
+
+        <!-- 输入表单区域 (默认激活，不带 page-inactive) -->
+        <div id="input-form-container" class="bg-secondary p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-700">
+            <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-3">角色属性点分配</h2>
+            <form id="character-form" class="space-y-6">
+
+                <!-- 第一行：基础信息 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-300 mb-1">姓名/角色代号</label>
+                        <input type="text" id="name" name="name" required aria-required="true" maxlength="30" 
+                            class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150" 
+                            placeholder="李寻欢" aria-label="姓名或角色代号">
+                        <div id="name-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                    </div>
+                    <div>
+                        <label for="mbti" class="block text-sm font-medium text-gray-300 mb-1">MBTI人格类型</label>
+                        <select id="mbti" name="mbti" required aria-required="true" aria-label="选择MBTI人格类型" 
+                            class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150">
+                            <option value="" disabled selected>选择你的类型...</option>
+                            <option value="INFP">INFP (调停者)</option>
+                            <option value="ENFJ">ENFJ (主人公)</option>
+                            <option value="ISTJ">ISTJ (物流师)</option>
+                            <option value="ESTP">ESTP (企业家)</option>
+                            <option value="ENTJ">ENTJ (指挥官)</option>
+                            <option value="ISFP">ISFP (探险家)</option>
+                            <option value="INFJ">INFJ (提倡者)</option>
+                            <option value="ESFJ">ESFJ (执政官)</option>
+                            <option value="INTP">INTP (逻辑学家)</option>
+                            <option value="ENFP">ENFP (竞选者)</option>
+                            <option value="ESTJ">ESTJ (总经理)</option>
+                            <option value="ISFJ">ISFJ (守护者)</option>
+                            <option value="ENTP">ENTP (辩论家)</option>
+                            <option value="ISTP">ISTP (鉴赏家)</option>
+                            <option value="ESFP">ESFP (表演者)</option>
+                            <option value="INTJ">INTJ (建筑师)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="zodiac" class="block text-sm font-medium text-gray-300 mb-1">星座</label>
+                        <select id="zodiac" name="zodiac" required class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150">
+                            <option value="" disabled selected>选择你的星座...</option>
+                            <option value="白羊座">白羊座 (Aries)</option>
+                            <option value="金牛座">金牛座 (Taurus)</option>
+                            <option value="双子座">双子座 (Gemini)</option>
+                            <option value="巨蟹座">巨蟹座 (Cancer)</option>
+                            <option value="狮子座">狮子座 (Leo)</option>
+                            <option value="处女座">处女座 (Virgo)</option>
+                            <option value="天秤座">天秤座 (Libra)</option>
+                            <option value="天蝎座">天蝎座 (Scorpio)</option>
+                            <option value="射手座">射手座 (Sagittarius)</option>
+                            <option value="摩羯座">摩羯座 (Capricorn)</option>
+                            <option value="水瓶座">水瓶座 (Aquarius)</option>
+                            <option value="双鱼座">双鱼座 ( Pisces )</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- NEW: 优化后的进阶信息 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- NEW: 人生阶段 -->
+                    <div>
+                        <label for="life-stage" class="block text-sm font-medium text-gray-300 mb-1">当前人生阶段</label>
+                        <select id="life-stage" name="life-stage" required class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150">
+                            <option value="" disabled selected>选择阶段...</option>
+                            <option value="学生/学术">学生/学术</option>
+                            <option value="职场新人 (1-3年)">职场新人 (1-3年)</option>
+                            <option value="资深专业人士 (4年以上)">资深专业人士 (4年以上)</option>
+                            <option value="团队管理者/领导者">团队管理者/领导者</option>
+                            <option value="自由职业者/独立工作者">自由职业者/独立工作者</option>
+                            <option value="创业者/公司创始人">创业者/公司创始人</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="animal" class="block text-sm font-medium text-gray-300 mb-1">生肖</label>
+                        <input type="text" id="animal" name="animal" class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150" placeholder="例如：龙/兔 (选填)">
+                    </div>
+                    <div>
+                        <label for="bazi" class="block text-sm font-medium text-gray-300 mb-1">八字/人类图（关键字）</label>
+                        <input type="text" id="bazi" name="bazi" class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150" placeholder="例如：身弱/投射者/3/5线 (选填)">
+                    </div>
+                    <!-- NEW: 农历生日 -->
+                    <div>
+                        <label for="lunar-birthday" class="block text-sm font-medium text-gray-300 mb-1">农历生日 (年/月/日/时)</label>
+                        <input type="text" id="lunar-birthday" name="lunar-birthday" class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150" placeholder="例如：1990年七月十五日辰时 (选填)">
+                    </div>
+                </div>
+
+                <!-- NEW: 实时自评量表 (FIXED: 增加意志，改为 grid-cols-4) -->
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700" id="self-rating-card">
+                    <label class="block text-sm font-bold text-primary mb-3">⚡ 当前精力实时自评 (1=极差, 5=极佳)</label>
+                    <div class="grid grid-cols-4 gap-4 text-center">
+                        <div class="space-y-2">
+                            <label for="self-physical" class="text-gray-300">💪 体能</label>
+                            <input type="range" id="self-physical" name="self-physical" min="1" max="5" value="3" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+                            <span id="self-physical-value" class="text-sm text-accent">3</span>
+                        </div>
+                        <div class="space-y-2">
+                            <label for="self-emotional" class="text-gray-300">💖 情绪</label>
+                            <input type="range" id="self-emotional" name="self-emotional" min="1" max="5" value="3" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+                            <span id="self-emotional-value" class="text-sm text-accent">3</span>
+                        </div>
+                        <div class="space-y-2">
+                            <label for="self-mental" class="text-gray-300">🧠 思维</label>
+                            <input type="range" id="self-mental" name="self-mental" min="1" max="5" value="3" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+                            <span id="self-mental-value" class="text-sm text-accent">3</span>
+                        </div>
+                        <!-- NEW: 意志 -->
+                        <div class="space-y-2">
+                            <label for="self-spiritual" class="text-gray-300">🔥 意志</label>
+                            <input type="range" id="self-spiritual" name="self-spiritual" min="1" max="5" value="3" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+                            <span id="self-spiritual-value" class="text-sm text-accent">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: 盖洛普优势与照片 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="strengths" class="block text-sm font-medium text-gray-300 mb-1">盖洛普优势/核心技能</label>
+                        <input type="text" id="strengths" name="strengths" class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150" placeholder="例如：战略/思维/学习 (选填)">
+                    </div>
+                    <div>
+                        <label for="photo" class="block text-sm font-medium text-gray-300 mb-1">
+                            上传你的照片作为角色形象参考（可选）
+                        </label>
+                        <input type="file" id="photo" name="photo" accept="image/*" class="w-full text-gray-300 file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0 file:text-sm file:font-semibold
+                            file:bg-primary/20 file:text-primary hover:file:bg-primary/30
+                            cursor-pointer transition duration-150">
+                        <p id="photo-status" class="text-xs mt-2 text-gray-500">
+                            照片仅用于AI参考生成形象，不会被存储。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 第三行：个人介绍 -->
+                <div>
+                    <label for="intro" class="block text-sm font-medium text-gray-300 mb-1">个人介绍/当前困境（最重要！请描述困境或目标）</label>
+                    <textarea id="intro" name="intro" rows="4" required aria-required="true" maxlength="500" aria-label="个人介绍或当前困境" class="w-full bg-gray-800 border border-gray-700 text-gray-100 p-3 rounded-xl focus:ring-primary focus:border-primary transition duration-150" placeholder="请描述你的困境：比如工作方向迷茫，渴望创新但缺乏勇气..."></textarea>
+                    <div id="intro-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                    <div class="text-gray-400 text-xs mt-1"><span id="intro-char-count">0</span>/500 字符</div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full bg-primary hover:bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg transition duration-300 ease-in-out transform hover:scale-[1.01] flex items-center justify-center">
+                    <svg id="submit-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c-1.282 0-2.52.22-3.67.653m11.332 7.788c-.643 2.067-2.126 3.737-4.08 4.795-1.954 1.058-4.326 1.341-6.49 1.157M12 21a9 9 0 005.618-2.016c.928-.506 1.637-1.127 2.152-1.84M12 21a9 9 0 01-5.618-2.016c-.515-.713-1.224-1.334-2.152-1.84m-.336-10.741c.643-2.067 2.126-3.737 4.08-4.795 1.954-1.058 4.326-1.341 6.49-1.157"></path></svg>
+                    生成我的角色手册
+                </button>
+            </form>
+        </div>
+
+        <!-- 加载和错误信息区域 -->
+        <div id="loading-area" class="mt-8 text-center hidden">
+            <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p id="loading-message" class="text-lg text-gray-400">正在整合星盘与天赋树，请稍候...</p>
+            
+            <!-- NEW: 进度条容器 -->
+            <div class="w-full bg-gray-700 rounded-full h-2.5 mt-4">
+                <div id="progress-bar" class="bg-primary h-2.5 rounded-full transition-all duration-500 ease-in-out" style="width: 0%"></div>
+            </div>
+            
+            <p id="error-message" class="text-lg text-red-400 mt-2 hidden"></p>
+        </div>
+
+        <!-- 结果展示区域 (FIXED: 初始添加 page-inactive 类) -->
+        <div id="result-card" class="mt-12 page-inactive">
+            <!-- 角色卡片 (顶部) -->
+            <div id="role-card-header" class="bg-gray-800 p-8 rounded-2xl shadow-3xl border border-primary/50 mb-8">
+                <div class="md:flex gap-8 items-start">
+                    <!-- NEW: 角色形象轮播图 -->
+                    <div class="flex-shrink-0 w-full md:w-1/3 mb-6 md:mb-0">
+                        <div class="carousel-container aspect-square shadow-lg border-4 border-primary/30" id="image-carousel">
+                            <div class="carousel-track h-full" id="carousel-track">
+                                <!-- Slides will be injected here -->
+                            </div>
+                            <!-- 左箭头 -->
+                            <button class="carousel-control left-0 ml-2" onclick="moveSlide(-1)">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+                            <!-- 右箭头 -->
+                            <button class="carousel-control right-0 mr-2" onclick="moveSlide(1)">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        </div>
+
+                        <!-- NEW: 双角色名称与适配度 -->
+                        <div class="mt-6 space-y-4">
+                            <!-- 幻想角色 -->
+                            <div id="fantasy-role-card" class="bg-gray-700 p-3 rounded-xl border border-primary/70">
+                                <p class="text-xs text-primary font-bold">🌍 幻想角色 (Earth OL Role)</p>
+                                <h3 id="fantasy-role-name" class="text-2xl font-extrabold text-white mt-1">角色名</h3>
+                                <p id="fantasy-role-trait" class="text-sm text-gray-400">核心特质</p>
+                                <div class="mt-3">
+                                    <div class="flex justify-between mb-1 text-sm font-medium">
+                                        <span class="text-primary">适配度</span>
+                                        <span id="fantasy-fit-percent" class="text-primary">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-600 rounded-full h-2">
+                                        <div id="fantasy-fit-bar" class="bg-primary h-2 rounded-full progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 现实角色 -->
+                            <div id="realistic-role-card" class="bg-gray-700 p-3 rounded-xl border border-accent/70">
+                                <p class="text-xs text-accent font-bold">💼 现实身份 (Real-World Persona)</p>
+                                <h3 id="realistic-role-name" class="text-2xl font-extrabold text-white mt-1">现实身份</h3>
+                                <div class="mt-3">
+                                    <div class="flex justify-between mb-1 text-sm font-medium">
+                                        <span class="text-accent">适配度</span>
+                                        <span id="realistic-fit-percent" class="text-accent">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-600 rounded-full h-2">
+                                        <div id="realistic-fit-bar" class="bg-accent h-2 rounded-full progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 角色描述与金句 -->
+                    <div class="flex-grow">
+                        <h4 class="text-xl font-bold text-primary mb-3 border-b border-gray-700 pb-2">角色描述（Earth OL Level 1）</h4>
+                        <!-- FIX 2a: 调整角色描述初始颜色，使用高对比度类 -->
+                        <div id="role-description-display" class="markdown-content text-gray-200 leading-relaxed mb-6">角色描述内容...</div>
+                        
+                        <div id="golden-sentence-card" class="bg-gray-700/50 p-4 rounded-xl border border-gray-600">
+                            <!-- FIX 1: 文本替换 -->
+                            <p class="text-sm font-semibold text-accent mb-1">💡 人生寄语</p>
+                            <!-- FIX 2b: 调整寄语初始颜色 -->
+                            <blockquote id="golden-sentence-display" class="markdown-content text-gray-100 italic border-l-4 border-accent pl-3">金句内容...</blockquote>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 攻略手册 (折叠面板) -->
+            <div id="guidance-sections" class="space-y-6 mb-6">
+                
+                <!-- 1. NLP 六层指引 -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700" id="nlp-card">
+                    <button class="flex justify-between items-center w-full focus:outline-none" onclick="toggleSection('nlp-content', 'nlp-toggle')">
+                        <h4 class="2xl font-bold text-indigo-400">⚡ NLP六层指引：升级你的思维架构</h4>
+                        <span class="text-indigo-400 text-2xl transition-transform duration-300" id="nlp-toggle">+</span>
+                    </button>
+                    <!-- NEW UX: collapsible-content for smooth animation -->
+                    <div id="nlp-content" class="mt-4 collapsible-content text-gray-300 markdown-content">
+                        <div class="space-y-6 pt-4">
+                            <div id="nlp-environment" class="p-3 bg-gray-700/30 rounded-lg"><strong>🌍 环境：</strong></div>
+                            <div id="nlp-behavior" class="p-3 bg-gray-700/30 rounded-lg"><strong>🏃 行为：</strong></div>
+                            <div id="nlp-capacity" class="p-3 bg-gray-700/30 rounded-lg"><strong>🧠 能力：</strong></div>
+                            <div id="nlp-belief-value" class="p-3 bg-gray-700/30 rounded-lg"><strong>❤️ 信念与价值观：</strong></div>
+                            <div id="nlp-identity" class="p-3 bg-gray-700/30 rounded-lg"><strong>👤 身份：</strong></div>
+                            <div id="nlp-mission" class="p-3 bg-gray-700/30 rounded-lg"><strong>✨ 精神/使命：</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 精力管理指引 (已优化为四维+补给品名称) -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700" id="energy-card">
+                    <button class="flex justify-between items-center w-full focus:outline-none" onclick="toggleSection('energy-content', 'energy-toggle')">
+                        <h4 class="2xl font-bold text-yellow-400">🔋 精力管理指引：四维平衡与专属补给品</h4>
+                        <span class="text-yellow-400 text-2xl transition-transform duration-300" id="energy-toggle">+</span>
+                    </button>
+                    <!-- NEW UX: collapsible-content for smooth animation -->
+                    <div id="energy-content" class="mt-4 collapsible-content text-gray-300 markdown-content">
+                        <div class="space-y-6 pt-4">
+                            <!-- NEW: 四维精力现在包含专属补给品名称 -->
+                            <div id="energy-physical" class="p-3 bg-gray-700/30 rounded-lg"><strong>💪 体能 (<span class="text-accent" id="physical-supply">补给品</span>)：</strong></div>
+                            <div id="energy-emotional" class="p-3 bg-gray-700/30 rounded-lg"><strong>💖 情绪 (<span class="text-accent" id="emotional-supply">补给品</span>)：</strong></div>
+                            <div id="energy-mental" class="p-3 bg-gray-700/30 rounded-lg"><strong>🧠 思维 (<span class="text-accent" id="mental-supply">补给品</span>)：</strong></div>
+                            <div id="energy-spiritual" class="p-3 bg-gray-700/30 rounded-lg"><strong>🔥 意志 (<span class="text-accent" id="spiritual-supply">补给品</span>)：</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 哲学三问 -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700" id="philosophy-card">
+                    <button class="flex justify-between items-center w-full focus:outline-none" onclick="toggleSection('philosophy-content', 'philosophy-toggle')">
+                        <h4 class="2xl font-bold text-pink-400">❓ 哲学三问：寻找人生的终极坐标</h4>
+                        <span class="text-pink-400 text-2xl transition-transform duration-300" id="philosophy-toggle">+</span>
+                    </button>
+                    <!-- NEW UX: collapsible-content for smooth animation -->
+                    <div id="philosophy-content" class="mt-4 collapsible-content text-gray-300 markdown-content">
+                        <div class="space-y-6 pt-4">
+                            <div id="who-am-i" class="p-3 bg-gray-700/30 rounded-lg"><strong>我是谁？</strong></div>
+                            <div id="where_from" class="p-3 bg-gray-700/30 rounded-lg"><strong>从哪里来？</strong></div>
+                            <div id="where_to" class="p-3 bg-gray-700/30 rounded-lg"><strong>要去哪里？</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- 4. 天赋指引 (新增 '天赋陷阱' 优化) -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700" id="talent-card">
+                    <button class="flex justify-between items-center w-full focus:outline-none" onclick="toggleSection('talent-content', 'talent-toggle')">
+                        <h4 class="2xl font-bold text-teal-400">🏅 天赋指引：优势与劣势解析</h4>
+                        <span class="text-teal-400 text-2xl transition-transform duration-300" id="talent-toggle">+</span>
+                    </button>
+                    <!-- NEW UX: collapsible-content for smooth animation -->
+                    <div id="talent-content" class="mt-4 collapsible-content text-gray-300 markdown-content">
+                        <div class="space-y-6 pt-4">
+                            <div id="talent-strengths" class="p-3 bg-gray-700/30 rounded-lg"><strong>✅ 核心优势：</strong></div>
+                            <!-- NEW: 优势过度使用陷阱 -->
+                            <div id="talent-shadow" class="p-3 bg-red-900/40 rounded-lg border-l-4 border-red-500"><strong>⚠️ 天赋陷阱 (阴影面)：</strong></div>
+                            <div id="talent-weaknesses" class="p-3 bg-gray-700/30 rounded-lg"><strong>❌ 潜在劣势：</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 思维模型与技能 (新增 '应用场景' 优化) -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700" id="model-card">
+                    <button class="flex justify-between items-center w-full focus:outline-none" onclick="toggleSection('model-content', 'model-toggle')">
+                        <h4 class="2xl font-bold text-orange-400">💡 专属思维模型与技能</h4>
+                        <span class="text-orange-400 text-2xl transition-transform duration-300" id="model-toggle">+</span>
+                    </button>
+                    <!-- NEW UX: collapsible-content for smooth animation -->
+                    <div id="model-content" class="mt-4 collapsible-content text-gray-300 markdown-content">
+                        <div class="space-y-6 pt-4">
+                            <div id="mind-model-display" class="p-3 bg-gray-700/30 rounded-lg mb-4"></div>
+                            <!-- NEW: 思维模型的应用场景 -->
+                            <div id="model-application-display" class="p-3 bg-gray-700/30 rounded-lg"><strong>📖 实操应用场景：</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. 工具指引 (保持) -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700" id="tool-card">
+                    <button class="flex justify-between items-center w-full focus:outline-none" onclick="toggleSection('tool-content', 'tool-toggle')">
+                        <h4 class="2xl font-bold text-cyan-400">🛠️ 专属工具指引</h4>
+                        <span class="text-cyan-400 text-2xl transition-transform duration-300" id="tool-toggle">+</span>
+                    </button>
+                    <!-- NEW UX: collapsible-content for smooth animation -->
+                    <div id="tool-content" class="mt-4 collapsible-content text-gray-300 markdown-content">
+                        <div class="space-y-6 pt-4">
+                            <div id="tool-guidance-display" class="p-3 bg-gray-700/30 rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 角色行动规划 (新增 '可量化指标' 优化) -->
+            <div id="action-plan-container" class="bg-gray-800 p-6 rounded-xl shadow-2xl border border-accent/50 mb-8">
+                <button id="generate-plan-btn" class="w-full bg-accent hover:bg-emerald-600 text-gray-900 font-bold py-3 rounded-xl shadow-md transition duration-300 ease-in-out flex items-center justify-center">
+                    <span class="mr-2 text-2xl">✨</span> 角色行动规划：将洞察转化为行动！
+                </button>
+                <div id="action-plan-result" class="mt-4 hidden p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                    <h5 class="xl font-bold text-accent mb-3 border-b border-gray-600 pb-2" id="plan-title-display"></h5>
+                    <ul id="plan-list" class="list-none space-y-3 text-gray-300">
+                        <!-- Plan steps will be inserted here -->
+                    </ul>
+                </div>
+                <p id="plan-loading-message" class="text-center text-gray-400 mt-4 hidden">正在为你制定下一步的行动路线...</p>
+            </div>
+            
+            <button onclick="showContainer(inputFormContainer); hideContainer(resultCard);" class="mt-10 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition duration-300 ease-in-out">
+                重新生成新的角色手册
+            </button>
+        </div>
+        
+        <!-- NEW: 即时执行脚本 - 确保结果卡片在浏览器解析时立即隐藏 -->
+        <script>
+            // 这个脚本会在解析到 #result-card 之后立即执行
+            const rc_immediate_fix = document.getElementById('result-card');
+            if (rc_immediate_fix) {
+                rc_immediate_fix.style.display = 'none';
+                rc_immediate_fix.style.opacity = '0';
+                rc_immediate_fix.style.pointerEvents = 'none';
+            }
+        </script>
+
+    </div>
+
+    <script>
+        // 全局变量和配置
+        const API_KEY = "gen-lang-client-0412306217"; // Canvas会自动填充API Key
+
+        // NEW: 集中配置常量
+        const CONFIG = {
+            apiKey: API_KEY,
+            endpoints: {
+                text: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`,
+                image: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${API_KEY}`
+            },
+            request: {
+                timeoutMs: 15000,
+                retry: {
+                    maxRetries: 5,
+                    baseDelayMs: 1000,
+                    jitterMs: 1000,
+                    statusBackoff: { '429': 5000 }
+                }
+            },
+            upload: {
+                maxBytes: 3 * 1024 * 1024,
+                allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp']
+            }
+        };
+
+        // 兼容旧用法的常量（保持现有调用不崩）
+        const GEMINI_API_URL = CONFIG.endpoints.text;
+        const GEMINI_IMAGE_API_URL = CONFIG.endpoints.image;
+        
+        // XSS 清洗函数
+        function sanitizeHTML(html) {
+            const temp = document.createElement('div');
+            temp.textContent = html;
+            return temp.innerHTML;
+        }
+        
+        // DOM 元素
+        const form = document.getElementById('character-form');
+        const photoInput = document.getElementById('photo');
+        const submitBtn = document.getElementById('submit-btn');
+        const loadingArea = document.getElementById('loading-area');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message');
+        const resultCard = document.getElementById('result-card');
+        const inputFormContainer = document.getElementById('input-form-container');
+        const progressBar = document.getElementById('progress-bar');
+        
+        // 表单校验函数
+        function validateForm() {
+            let isValid = true;
+            
+            // 姓名校验
+            const nameInput = document.getElementById('name');
+            const nameError = document.getElementById('name-error');
+            
+            if (!nameInput.value.trim()) {
+                nameError.textContent = "请输入姓名或角色代号";
+                nameError.classList.remove('hidden');
+                isValid = false;
+            } else if (nameInput.value.length > 30) {
+                nameError.textContent = "姓名长度不能超过30个字符";
+                nameError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                nameError.classList.add('hidden');
+            }
+            
+            // 个人介绍校验
+            const introInput = document.getElementById('intro');
+            const introError = document.getElementById('intro-error');
+            
+            if (introInput && !introInput.value.trim()) {
+                introError.textContent = "请输入个人介绍或当前困境";
+                introError.classList.remove('hidden');
+                isValid = false;
+            } else if (introInput && introInput.value.length > 500) {
+                introError.textContent = "介绍长度不能超过500个字符";
+                introError.classList.remove('hidden');
+                isValid = false;
+            } else if (introInput) {
+                introError.classList.add('hidden');
+            }
+            
+            return isValid;
+        }
+
+        // NEW: 统一错误提示
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+        
+        // 自评量表 DOM
+        const selfPhysical = document.getElementById('self-physical');
+        const selfEmotional = document.getElementById('self-emotional');
+        const selfMental = document.getElementById('self-mental');
+        const selfSpiritual = document.getElementById('self-spiritual');
+        
+        // 主题相关 DOM
+        const body = document.body;
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        
+        // 轮播图状态 (FIXED: 2张图)
+        let currentSlide = 0;
+        const totalSlides = 2;
+        const TOTAL_PROCESS_STEPS = 4; // 1. Read/Setup, 2. Gen Text, 3. Gen Image 1, 4. Gen Image 2
+        let currentProcessStep = 0;
+
+
+        // NEW: 绑定量表值显示
+        selfPhysical.addEventListener('input', () => document.getElementById('self-physical-value').textContent = selfPhysical.value);
+        selfEmotional.addEventListener('input', () => document.getElementById('self-emotional-value').textContent = selfEmotional.value);
+        selfMental.addEventListener('input', () => document.getElementById('self-mental-value').textContent = selfMental.value);
+        selfSpiritual.addEventListener('input', () => document.getElementById('self-spiritual-value').textContent = selfSpiritual.value);
+        
+        
+        // --- 进度条更新函数 (NEW FEATURE) ---
+        function updateProgress(stepMessage) {
+            currentProcessStep++;
+            const percent = Math.min(100, Math.round((currentProcessStep / TOTAL_PROCESS_STEPS) * 100));
+            progressBar.style.width = `${percent}%`;
+            loadingMessage.textContent = stepMessage;
+        }
+
+        // --- 强制页面切换函数 (FIXED: 使用 Class-Based 切换) ---
+        function showContainer(element) {
+            // 确保只有一个主容器是活跃的
+            if (element === inputFormContainer) {
+                hideContainer(resultCard);
+            } else if (element === resultCard) {
+                hideContainer(inputFormContainer);
+            }
+            // 强制显示 (移除 inactive 类)
+            element.classList.remove('page-inactive');
+            element.style.opacity = '1';
+            element.style.pointerEvents = 'auto';
+        }
+
+        function hideContainer(element) {
+            // 强制隐藏 (添加 inactive 类)
+            element.classList.add('page-inactive');
+            element.style.opacity = '0';
+            element.style.pointerEvents = 'none';
+        }
+        
+        // --- 折叠面板切换函数 (NEW UX: 增加动画) ---
+        function toggleSection(contentId, toggleId) {
+            const content = document.getElementById(contentId);
+            const toggleIcon = document.getElementById(toggleId);
+            
+            if (content.classList.contains('active')) {
+                // 折叠
+                content.classList.remove('active');
+                toggleIcon.classList.remove('rotate-90');
+                content.style.maxHeight = '0'; // 启用CSS过渡
+            } else {
+                // 展开
+                content.classList.add('active');
+                toggleIcon.classList.add('rotate-90');
+                // 立即设置一个大高度来开始过渡
+                content.style.maxHeight = content.scrollHeight + 'px'; 
+            }
+        }
+        
+        // --- 主题切换逻辑 (重构为使用 Tailwind dark: 变体) ---
+        function toggleTheme() {
+            const isDark = body.classList.contains('dark');
+            
+            if (isDark) {
+                body.classList.remove('dark');
+                // 切换到浅色模式图标
+                themeToggleBtn.innerHTML = '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 01-2 0V3a1 1 0 011-1zm6.95 6.95a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM3.732 3.732a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zm13.136 12.728a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM4 10a1 1 0 011-1h1a1 1 0 010 2H5a1 1 0 01-1-1zm12-1h1a1 1 0 010 2h-1a1 1 0 010-2zm-6 6a4 4 0 100-8 4 4 0 000 8zm0 2a6 6 0 110-12 6 6 0 010 12z"></path></svg>';
+            } else {
+                body.classList.add('dark');
+                // 切换到深色模式图标
+                themeToggleBtn.innerHTML = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>';
+            }
+            
+            // 强制颜色对比度修复 (在切换主题时运行)
+            const roleDesc = document.getElementById('role-description-display');
+            const goldenSent = document.getElementById('golden-sentence-display');
+
+            const newTheme = body.classList.contains('dark') ? 'dark' : 'light';
+            
+            if (newTheme === 'light') {
+                // 浅色模式：深色文本
+                if (roleDesc) roleDesc.classList.replace('text-gray-200', 'text-gray-900');
+                if (goldenSent) goldenSent.classList.replace('text-gray-100', 'text-gray-800');
+            } else {
+                // 深色模式：浅色文本
+                if (roleDesc) roleDesc.classList.replace('text-gray-900', 'text-gray-200');
+                if (goldenSent) goldenSent.classList.replace('text-gray-800', 'text-gray-100');
+            }
+        }
+        // --- 轮播图控制逻辑 ---
+        function updateCarousel() {
+            const track = document.getElementById('carousel-track');
+            if (track) {
+                const offset = -currentSlide * 100;
+                track.style.transform = `translateX(${offset}%)`;
+            }
+        }
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide >= totalSlides) {
+                currentSlide = 0;
+            } else if (currentSlide < 0) {
+                currentSlide = totalSlides - 1;
+            }
+            updateCarousel();
+        }
+
+        // --- 辅助函数 ---
+
+        async function fetchWithBackoff(url, options, maxRetries = CONFIG.request.retry.maxRetries) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    // 超时控制
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), CONFIG.request.timeoutMs);
+                    const response = await fetch(url, { ...options, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    let responseText = await response.text(); 
+                    
+                    if (!response.ok) {
+                        let errorData = {};
+                        let errorMessage = response.statusText;
+                        
+                        try {
+                            errorData = JSON.parse(responseText);
+                            errorMessage = errorData.error ? errorData.error.message : response.statusText;
+                        } catch (e) {
+                            // 修正：如果响应状态是 401 且不是 JSON，直接返回授权错误提示
+                            if (response.status === 401) {
+                                throw new Error("授权失败 (401)。请确保您的 Gemini API Key 已正确配置或授权。");
+                            }
+                            // Non-JSON error body (usually occurs with 401 if API key is missing)
+                            throw new Error(`API error: ${response.status} - Non-JSON error body. Text: ${responseText.substring(0, 100)}`);
+                        }
+                        
+                        throw new Error(`API error: ${response.status} ${errorMessage}`);
+                    }
+                    
+                    // Successful path (response.ok)
+                    if (!responseText) {
+                        // 图像 API 返回空内容时，这里会捕获。
+                         if (url.includes(CONFIG.endpoints.image)) {
+                            // 图像 API 有时成功但返回空内容，可能是模型内部错误。
+                            throw new Error("图像 API 返回了成功的状态码，但内容为空。");
+                        }
+                        throw new SyntaxError("Unexpected end of input: Empty response body on successful API call.");
+                    }
+                    return JSON.parse(responseText); 
+                    
+                } catch (error) {
+                    // 超时特殊提示
+                    if (error.name === 'AbortError') {
+                        if (i === maxRetries - 1) throw new Error('请求超时，请稍后重试。');
+                    }
+                    if (i === maxRetries - 1) throw error;
+                    // 解析 429 等状态进行更长退避
+                    let delay = Math.pow(2, i) * CONFIG.request.retry.baseDelayMs + Math.random() * CONFIG.request.retry.jitterMs;
+                    const match = /API error: (\d+)/.exec(error.message || '');
+                    if (match && CONFIG.request.retry.statusBackoff[match[1]]) {
+                        delay = CONFIG.request.retry.statusBackoff[match[1]] + Math.random() * CONFIG.request.retry.jitterMs;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        /**
+         * 将文件转换为 Base64 字符串
+         */
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) {
+                    return resolve(null);
+                }
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Only need the Base64 part
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /**
+         * 步骤 1: 生成两张 AI 角色形象 (Gemini 2.5 Flash Image) (FIXED: 2 images)
+         */
+        async function generateTwoImages(fantasyRoleName, realisticRoleName, base64Image, base64ImageMimeType) {
+            
+            // 定义两个不同主题的图像生成提示
+            const imagePrompts = [
+                { id: 0, theme: "幻想角色 (Fantasy Role)", role: fantasyRoleName, 
+                  prompt: `基于用户提供的照片作为主角和风格参考，结合其幻想角色名称'${fantasyRoleName}'的核心特质，以史诗、奇幻艺术效果生成一张肖像图。要求肖像图风格保持一致性，且主角形象需清晰、正面，体现幻想感。` },
+                { id: 1, theme: "现实身份 (Realistic Persona)", role: realisticRoleName, 
+                  prompt: `基于用户提供的照片作为主角和风格参考，结合其现实身份名称'${realisticRoleName}'的职业特征，以现代、专业肖像艺术效果生成一张肖像图。要求肖像图风格保持一致性，且主角形象需清晰、正面，体现专业感。` }
+            ];
+
+            const imageResults = [];
+            
+            for (let i = 0; i < imagePrompts.length; i++) {
+                const { theme, prompt } = imagePrompts[i];
+                
+                const parts = [];
+                parts.push({ text: prompt }); // 总是添加文本提示
+
+                // 只有在上传了图片时才添加 inlineData
+                if (base64Image) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: base64ImageMimeType, 
+                            data: base64Image
+                        }
+                    });
+                }
+                
+                const payload = {
+                    contents: [{ role: "user", parts: parts }],
+                    generationConfig: {
+                        responseModalities: ['IMAGE'],
+                        sampleCount: 1 // 每次只请求一张
+                    },
+                };
+
+                const options = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                };
+
+                // CRITICAL FIX: Add local try/catch to ensure the loop completes and pushes 2 items.
+                try {
+                    // Update progress for Image 1 (Step 3) and Image 2 (Step 4)
+                    updateProgress(i === 0 ? `3/4: 绘制幻想角色形象...` : `4/4: 绘制现实身份形象...`);
+                    
+                    const response = await fetchWithBackoff(GEMINI_IMAGE_API_URL, options);
+                    
+                    const base64Data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                    
+                    if (base64Data) {
+                        imageResults.push(`data:image/png;base64,${base64Data}`);
+                    } else {
+                        console.error(`ERROR: 图像生成失败 (${theme}). API returned empty content.`); // Stronger logging
+                        // 如果 API 成功但返回空内容，推一个错误占位符
+                        imageResults.push(`https://placehold.co/400x400/dc2626/ffffff?text=图像生成失败+${i+1}`); 
+                    }
+                } catch (error) {
+                    console.error(`ERROR: 图像生成请求失败 (${theme}). Error:`, error);
+                    // 任何 API 错误（包括 401, 500, 超时）都推一个错误占位符
+                    imageResults.push(`https://placehold.co/400x400/dc2626/ffffff?text=图像生成失败+${i+1}`); 
+                }
+            }
+            console.log(`Image Generation Results Count: ${imageResults.length}`); // Log count
+            return imageResults;
+        }
+
+
+        /**
+         * 步骤 2: 生成 AI 角色手册文本 (Gemini 2.5 Flash)
+         */
+        async function generateText(data) {
+            const { name, mbti, zodiac, animal, bazi, strengths, intro, 'life-stage': lifeStage, 'lunar-birthday': lunarBirthday, 'self-physical': selfPhysical, 'self-emotional': selfEmotional, 'self-mental': selfMental, 'self-spiritual': selfSpiritual } = data;
+
+            const systemPrompt = "你是一位世界级的个人成长导师和人工智能心理学家。你的任务是根据用户提供的多维度信息，为他们量身打造一个独特的'地球OL角色手册'，内容需包含'幻想角色'和'现实身份'两种类型并给出百分比适配度。手册内容必须包括：双角色描述、NLP六层指引、精力管理指引（分体能、情绪、思维、意志四维）、哲学三问、天赋指引（优势和劣势）、专属思维模型和工具指引。所有输出必须严格遵守提供的JSON Schema格式。在生成内容时，请务必使用中文，并融入幽默、名人案例和鼓舞人心的金句。**注意：所有的指引内容（除了角色名称/特质/金句）都应使用 Markdown 格式（如换行、列表或粗体）来确保格式清晰，解决内容拥挤问题。**";
+            
+            const userQuery = `请根据以下用户数据生成角色手册：
+- 姓名/代号: ${name}
+- MBTI: ${mbti}
+- 星座: ${zodiac}
+- 生肖: ${animal}
+- 八字/人类图（关键字）: ${bazi || '未提供'}
+- 盖洛普优势/核心技能: ${strengths || '未提供'}
+- 当前人生阶段: ${lifeStage}
+- 农历生日信息: ${lunarBirthday || '未提供'}
+- **用户当前精力自评**: (体能: ${selfPhysical}/5, 情绪: ${selfEmotional}/5, 思维: ${selfMental}/5, 意志: ${selfSpiritual}/5)
+- 个人介绍/当前困境: ${intro}`;
+
+            const jsonSchema = {
+                type: "OBJECT",
+                properties: {
+                    // NEW: 双角色结构
+                    "character_profiles": {
+                        "type": "OBJECT",
+                        "description": "幻想角色和现实身份的对比分析。",
+                        "properties": {
+                            "fantasy_role": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "name": { "type": "STRING", "description": "游戏化/幻想化的角色名称，例如：'追光者', '战略建筑师'。" },
+                                    "trait": { "type": "STRING", "description": "核心特质，用一句话概括角色的精髓。" },
+                                    "fit_percentage": { "type": "INTEGER", "description": "适配度百分比 (0-100)。" }
+                                },
+                                "required": ["name", "trait", "fit_percentage"]
+                            },
+                            "realistic_persona": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "name": { "type": "STRING", "description": "现实职业/身份名称，例如：'高情商项目经理', '数据驱动的自由作家'。" },
+                                    "fit_percentage": { "type": "INTEGER", "description": "适配度百分比 (0-100)。" }
+                                },
+                                "required": ["name", "fit_percentage"]
+                            "fit_percentage": { "type": "INTEGER", "description": "适配度百分比 (0-100)。" }
+                        },
+                        "required": ["fantasy_role", "realistic_persona"]
+                    },
+                    "role_description": { "type": "STRING", "description": "详细的角色描述，结合所有输入信息，用生动的语言描绘角色的性格、天赋和潜在挑战。请使用 Markdown 格式。此描述应以幻想角色为主体。" },
+                    
+                    // NEW: 天赋指引 (包含优势陷阱)
+                    "talent_guidance": {
+                        "type": "OBJECT",
+                        "description": "基于MBTI、优势等得出的优势和劣势分析。",
+                        "properties": {
+                            "strengths": { "type": "STRING", "description": "核心优势和天赋。请使用 Markdown 格式。" },
+                            "shadow_trait": { "type": "STRING", "description": "优势过度使用后的阴影面或陷阱。请使用 Markdown 格式。" },
+                            "weaknesses": { "type": "STRING", "description": "潜在的盲点和劣势。请使用 Markdown 格式。" }
+                        },
+                        "required": ["strengths", "shadow_trait", "weaknesses"]
+                    },
+                    // NEW: 专属思维模型 (包含应用场景)
+                    "mind_model": { "type": "STRING", "description": "专属思维模型和技能，例如：'第一性原理思考法'，'时间箱技术'。请使用 Markdown 格式。" },
+                    "model_application": { "type": "STRING", "description": "推荐思维模型在用户当前困境中的具体应用场景和步骤。请使用 Markdown 格式。" },
+                    // NEW: 工具指引
+                    "tool_guidance": { "type": "STRING", "description": "推荐的实用工具/方法论，例如：推荐使用项目管理工具Trello。请使用 Markdown 格式。" },
+                    
+                    "nlp_guidance": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "environment": { "type": "STRING", "description": "环境层面的指导，例如：你适合在什么样的团队中成长。请使用 Markdown 格式。" },
+                            "behavior": { "type": "STRING", "description": "行为层面的指导，提供具体的行动建议。请使用 Markdown 格式。" },
+                            "capacity": { "type": "STRING", "description": "能力层面的指导，如何发挥和提升你的核心技能。请使用 Markdown 格式。" },
+                            "belief_value": { "type": "STRING", "description": "信念与价值观层面的指导，例如：你需要相信什么才能成功。请使用 Markdown 格式。" },
+                            "identity": { "type": "STRING", "description": "身份层面的指导，帮助用户定义自己是谁。请使用 Markdown 格式。" },
+                            "mission": { "type": "STRING", "description": "精神/使命层面的指导，探索人生的更高意义。请使用 Markdown 格式。" }
+                        },
+                        "propertyOrdering": ["environment", "behavior", "capacity", "belief_value", "identity", "mission"]
+                    },
+                    "energy_management": { 
+                        "type": "OBJECT",
+                        "description": "详细的精力管理指引，分为体能、情绪、思维、意志四个方面。",
+                        "properties": {
+                            // NEW: 每个维度包含专属补给品名称 (supply_name)
+                            "physical": { "type": "STRING", "description": "体能管理指引，关于休息、营养和运动。请使用 Markdown 格式。" },
+                            "physical_supply_name": { "type": "STRING", "description": "体能专属补给品名称，例如：'猎人午后漫步'" },
+                            "emotional": { "type": "STRING", "description": "情绪管理指引，关于积极情感和应对压力。请使用 Markdown 格式。" },
+                            "emotional_supply_name": { "type": "STRING", "description": "情绪专属补给品名称，例如：'内心平静锚点'" },
+                            "mental": { "type": "STRING", "description": "思维管理指引，关于专注力、深度工作和休息。请使用 Markdown 格式。" },
+                            "mental_supply_name": { "type": "STRING", "description": "思维专属补给品名称，例如：'思维净化器'" },
+                            "spiritual": { "type": "STRING", "description": "意志/目的管理指引，关于价值观、使命感和人生意义。请使用 Markdown 格式。" },
+                            "spiritual_supply_name": { "type": "STRING", "description": "意志专属补给品名称，例如：'北极星指南针'" }
+                        },
+                        "propertyOrdering": ["physical", "physical_supply_name", "emotional", "emotional_supply_name", "mental", "mental_supply_name", "spiritual", "spiritual_supply_name"]
+                    },
+                    "philosophy_questions": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "who_am_i": { "type": "STRING", "description": "对'我是谁'的深刻反思和指引。请使用 Markdown 格式。" },
+                            "where_from": { "type": "STRING", "description": "对'从哪里来'的回顾与启示。请使用 Markdown 格式。" },
+                            "where_to": { "type": "STRING", "description": "对'要去哪里'的探索与规划。请使用 Markdown 格式。" }
+                        },
+                        "propertyOrdering": ["who_am_i", "where_from", "where_to"] 
+                    },
+                    "golden_sentence": { "type": "STRING", "description": "本次手册的总结性、鼓舞人心的金句。请使用 Markdown 格式。" }
+                },
+                "required": ["character_profiles", "role_description", "talent_guidance", "mind_model", "model_application", "tool_guidance", "nlp_guidance", "energy_management", "philosophy_questions", "golden_sentence"]
+            };
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: jsonSchema
+                }
+            };
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+
+            updateProgress("2/4: 文本分析生成中..."); // Step 2 Progress Update
+            
+            const response = await fetchWithBackoff(GEMINI_API_URL, options);
+            
+            const jsonText = response.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (jsonText) {
+                try {
+                    return JSON.parse(jsonText);
+                } catch (e) {
+                    console.error("JSON解析错误:", e, jsonText);
+                    throw new Error("AI返回的格式不正确，请重试。");
+                }
+            } else {
+                throw new Error("AI文本生成失败，未返回有效内容。");
+            }
+        }
+
+        /**
+         * 步骤 3: 生成 AI 行动计划 (Gemini 2.5 Flash - Structured)
+         */
+        async function generateActionPlan(intro, roleDescription, energyManagement) {
+            const systemPrompt = "你是一位高效的行动教练。你的任务是根据用户的当前困境和角色天赋，为他们制定一个具体、可行、且高度个性化的三步行动计划（针对未来一周）。计划的每一步都要清晰明确，且与角色分析相关。所有输出必须严格遵守提供的JSON Schema格式。";
+            
+            const energyManagementSummary = `
+体能管理 (补给品: ${energyManagement.physical_supply_name}): ${marked.parse(energyManagement.physical).replace(/<[^>]*>/g, '')}
+情绪管理 (补给品: ${energyManagement.emotional_supply_name}): ${marked.parse(energyManagement.emotional).replace(/<[^>]*>/g, '')}
+思维管理 (补给品: ${energyManagement.mental_supply_name}): ${marked.parse(energyManagement.mental).replace(/<[^>]*>/g, '')}
+意志管理 (补给品: ${energyManagement.spiritual_supply_name}): ${marked.parse(energyManagement.spiritual).replace(/<[^>]*>/g, '')}
+`;
+
+            const userQuery = `请根据以下信息制定一个三步行动计划：
+- **用户的当前困境/目标**: ${intro}
+- **角色的核心描述**: ${roleDescription}
+- **角色的四维精力管理建议**: ${energyManagementSummary}
+
+请根据这些信息，给出一个标题，列出3个具体行动步骤，并为每一步添加一个“成功衡量指标”或“行动频率”（例如：每周执行 3 次，或完成 1 次）。`;
+
+            const jsonSchema = {
+                type: "OBJECT",
+                properties: {
+                    "plan_title": { "type": "STRING", "description": "行动计划的标题，激励人心，例如：'探路者一周觉醒计划'。" },
+                    "steps": { 
+                        "type": "ARRAY", 
+                        "description": "三个具体的行动步骤，每一步都是一个清晰的指令和可量化的目标。",
+                        "items": { 
+                            "type": "OBJECT",
+                            "properties": {
+                                "action": { "type": "STRING", "description": "具体的行动内容，如：每天早上写 30 分钟无目标自由写作。" },
+                                "success_metric": { "type": "STRING", "description": "该行动的可量化成功衡量指标，如：未来 7 天内完成 5 次。" }
+                            }
+                        }
+                    }
+                },
+                "required": ["plan_title", "steps"]
+            };
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: jsonSchema
+                }
+            };
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+            
+            const response = await fetchWithBackoff(GEMINI_API_URL, options);
+            
+            const jsonText = response.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (jsonText) {
+                try {
+                    return JSON.parse(jsonText);
+                } catch (e) {
+                    console.error("JSON解析错误:", e, jsonText);
+                    throw new Error("AI返回的行动计划格式不正确。");
+                }
+            } else {
+                throw new Error("AI行动计划生成失败。");
+            }
+        }
+
+        // NEW Helper: 移除 Markdown 输出中的外层 <p> 标签，确保列表对齐
+        const stripPTags = (html) => html.replace(/^<p>(.*)<\/p>$/s, '$1');
+
+
+        /**
+         * 步骤 4: 渲染结果到 UI
+         */
+        function renderResults(textData, imageURLs) {
+            
+            // 渲染图片轮播
+            const track = document.getElementById('carousel-track');
+            track.innerHTML = ''; // 清空原有图片
+            // FIXED: 循环 totalSlides (2) 次
+            imageURLs.forEach((url, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide h-full';
+                
+                let imageHTML;
+                // 检查是否为错误占位图
+                if (url.includes('placehold.co')) {
+                    imageHTML = `<div class="w-full h-full flex items-center justify-center bg-red-800 rounded-xl">
+                                    <span class="text-white text-center p-4">图像生成失败，请重试或检查网络。</span>
+                                 </div>`;
+                } else {
+                    imageHTML = `<img src="${url}" alt="角色形象 ${index === 0 ? '幻想' : '现实'} 形态" class="w-full h-full object-cover rounded-xl">`;
+                }
+
+                slide.innerHTML = sanitizeHTML(imageHTML);
+                track.appendChild(slide);
+            });
+            currentSlide = 0; // 重置轮播图到第一张
+            updateCarousel(); // 立即更新位置
+
+            // 确保输入表单被强制隐藏
+            hideContainer(inputFormContainer);
+            
+            // --- NEW: 渲染双角色信息 ---
+            const fantasy = textData.character_profiles.fantasy_role;
+            const realistic = textData.character_profiles.realistic_persona;
+
+            document.getElementById('fantasy-role-name').textContent = fantasy.name;
+            document.getElementById('fantasy-role-trait').textContent = fantasy.trait;
+            document.getElementById('fantasy-fit-percent').textContent = `${fantasy.fit_percentage}%`;
+            document.getElementById('fantasy-fit-bar').style.width = `${fantasy.fit_percentage}%`;
+            
+            document.getElementById('realistic-role-name').textContent = realistic.name;
+            document.getElementById('realistic-role-name').textContent = realistic.name;
+            document.getElementById('realistic-fit-percent').textContent = `${realistic.fit_percentage}%`;
+            document.getElementById('realistic-fit-bar').style.width = `${realistic.fit_percentage}%`;
+            // --- END NEW ---
+
+            document.getElementById('role-description-display').innerHTML = sanitizeHTML(marked.parse(textData.role_description));
+            document.getElementById('golden-sentence-display').innerHTML = sanitizeHTML(marked.parse(textData.golden_sentence));
+
+            // 渲染 NLP 六层 (添加XSS防护)
+            document.getElementById('nlp-environment').innerHTML = sanitizeHTML(`<strong>🌍 环境：</strong> ${marked.parse(textData.nlp_guidance.environment)}`);
+            document.getElementById('nlp-behavior').innerHTML = sanitizeHTML(`<strong>🏃 行为：</strong> ${marked.parse(textData.nlp_guidance.behavior)}`);
+            document.getElementById('nlp-capacity').innerHTML = sanitizeHTML(`<strong>🧠 能力：</strong> ${marked.parse(textData.nlp_guidance.capacity)}`);
+            document.getElementById('nlp-belief-value').innerHTML = sanitizeHTML(`<strong>❤️ 信念与价值观：</strong> ${marked.parse(textData.nlp_guidance.belief_value)}`);
+            document.getElementById('nlp-identity').innerHTML = sanitizeHTML(`<strong>👤 身份：</strong> ${marked.parse(textData.nlp_guidance.identity)}`);
+            document.getElementById('nlp-mission').innerHTML = sanitizeHTML(`<strong>✨ 精神/使命：</strong> ${marked.parse(textData.nlp_guidance.mission)}`);
+
+            // 渲染 精力管理 (四维+补给品名称) (添加XSS防护)
+            document.getElementById('energy-physical').innerHTML = sanitizeHTML(`<strong>💪 体能 (<span class="text-accent">${textData.energy_management.physical_supply_name}</span>)：</strong> ${marked.parse(textData.energy_management.physical)}`);
+            document.getElementById('energy-emotional').innerHTML = sanitizeHTML(`<strong>💖 情绪 (<span class="text-accent">${textData.energy_management.emotional_supply_name}</span>)：</strong> ${marked.parse(textData.energy_management.emotional)}`);
+            document.getElementById('energy-mental').innerHTML = sanitizeHTML(`<strong>🧠 思维 (<span class="text-accent">${textData.energy_management.mental_supply_name}</span>)：</strong> ${marked.parse(textData.energy_management.mental)}`);
+            document.getElementById('energy-spiritual').innerHTML = sanitizeHTML(`<strong>🔥 意志 (<span class="text-accent">${textData.energy_management.spiritual_supply_name}</span>)：</strong> ${marked.parse(textData.energy_management.spiritual)}`);
+
+            // 渲染 哲学三问 (添加XSS防护)
+            document.getElementById('who-am-i').innerHTML = sanitizeHTML(`<strong>我是谁？</strong> ${marked.parse(textData.philosophy_questions.who_am_i)}`);
+            document.getElementById('where_from').innerHTML = sanitizeHTML(`<strong>从哪里来？</strong> ${marked.parse(textData.philosophy_questions.where_from)}`);
+            document.getElementById('where_to').innerHTML = sanitizeHTML(`<strong>要去哪里？</strong> ${marked.parse(textData.philosophy_questions.where_to)}`);
+            
+            // 渲染 天赋指引 (添加XSS防护)
+            document.getElementById('talent-strengths').innerHTML = sanitizeHTML(`<strong>✅ 核心优势：</strong> ${marked.parse(textData.talent_guidance.strengths)}`);
+            document.getElementById('talent-shadow').innerHTML = sanitizeHTML(`<strong>⚠️ 天赋陷阱 (阴影面)：</strong> ${marked.parse(textData.talent_guidance.shadow_trait)}`);
+            document.getElementById('talent-weaknesses').innerHTML = sanitizeHTML(`<strong>❌ 潜在劣势：</strong> ${marked.parse(textData.talent_guidance.weaknesses)}`);
+
+            // 渲染 思维模型 (添加XSS防护)
+            document.getElementById('mind-model-display').innerHTML = sanitizeHTML(`<strong>💡 专属思维模型：</strong> ${marked.parse(textData.mind_model)}`);
+            document.getElementById('model-application-display').innerHTML = sanitizeHTML(`<strong>📖 实操应用场景：</strong> ${marked.parse(textData.model_application)}`);
+
+            // 渲染 工具指引 (添加XSS防护)
+            document.getElementById('tool-guidance-display').innerHTML = sanitizeHTML(`<strong>🛠️ 推荐工具：</strong> ${marked.parse(textData.tool_guidance)}`);
+
+            loadingArea.classList.add('hidden');
+            showContainer(resultCard);
+            
+            // 绑定行动计划按钮事件，并清空上次的计划结果
+            document.getElementById('generate-plan-btn').onclick = handleGeneratePlan; 
+            document.getElementById('action-plan-result').classList.add('hidden');
+            document.getElementById('plan-loading-message').classList.add('hidden');
+            
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // --- 行动计划逻辑 (已更新为新的 JSON 结构) ---
+        function renderActionPlan(planData) {
+            document.getElementById('plan-title-display').textContent = planData.plan_title;
+            const planList = document.getElementById('plan-list');
+            planList.innerHTML = ''; 
+            
+            planData.steps.forEach((step) => {
+                const li = document.createElement('li');
+                // FIX: 强制使用 mb-4 增加行动计划的行间距
+                li.className = 'flex items-start mb-4'; 
+                // FIX: 使用 stripPTags 确保行动内容干净
+                li.innerHTML = sanitizeHTML(`
+                    <span class="inline-block w-4 h-4 mr-2 mt-1 rounded-full bg-accent flex-shrink-0"></span>
+                    <span class="flex-grow">
+                        ${stripPTags(marked.parse(step.action))} 
+                        <span class="text-sm text-gray-500 block">(${stripPTags(marked.parse(step.success_metric))})</span>
+                    </span>
+                `);
+                planList.appendChild(li);
+            });
+        }
+        
+        async function handleGeneratePlan() {
+            if (!latestTextData || !form.elements.intro.value) {
+                showCustomMessage("提示", "缺少角色信息或困境描述，无法生成行动计划。");
+                return;
+            }
+
+            const planBtn = document.getElementById('generate-plan-btn');
+            const planResult = document.getElementById('action-plan-result');
+            const planLoading = document.getElementById('plan-loading-message');
+
+            planBtn.disabled = true;
+            planResult.classList.add('hidden');
+            planLoading.classList.remove('hidden');
+            planLoading.textContent = "正在为你制定下一步的行动路线...";
+            
+            const intro = form.elements.intro.value;
+            const roleDescription = latestTextData.role_description;
+            const energyManagement = latestTextData.energy_management; 
+            
+            try {
+                const planData = await generateActionPlan(intro, roleDescription, energyManagement);
+                renderActionPlan(planData);
+                planLoading.classList.add('hidden');
+                planResult.classList.remove('hidden');
+            } catch (error) {
+                console.error("行动计划生成失败:", error);
+                showError(`行动计划生成失败: ${error.message}`);
+                planLoading.classList.add('hidden');
+            } finally {
+                planBtn.disabled = false;
+            }
+        }
+
+
+        /**
+         * 主控函数
+         */
+        async function generateCharacter(event) {
+            event.preventDefault();
+            
+            // 表单校验
+            if (!validateForm()) {
+                return;
+            }
+            
+            // 重置进度
+            currentProcessStep = 0;
+            progressBar.style.width = '0%';
+            
+            // 隐藏表单，显示加载
+            hideContainer(inputFormContainer);
+            hideContainer(resultCard);
+            loadingArea.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            submitBtn.disabled = true;
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // 1. 读取上传图片为 Base64
+            const photoFile = photoInput.files[0];
+            try {
+                // Step 1 Progress Update
+                updateProgress("1/4: 正在读取照片和准备文本数据...");
+                
+                if (photoFile) {
+                    // NEW: 上传校验 - 类型与大小
+                    if (!CONFIG.upload.allowedMimeTypes.includes(photoFile.type)) {
+                        showCustomMessage("提示", "仅支持上传 PNG/JPEG/WEBP 图片。");
+                        submitBtn.disabled = false;
+                        loadingArea.classList.add('hidden');
+                        showContainer(inputFormContainer);
+                        return;
+                    }
+                    if (photoFile.size > CONFIG.upload.maxBytes) {
+                        showCustomMessage("提示", "图片大小不超过 3MB。");
+                        submitBtn.disabled = false;
+                        loadingArea.classList.add('hidden');
+                        showContainer(inputFormContainer);
+                        return;
+                    }
+                    uploadedImageBase64 = await readFileAsBase64(photoFile);
+                    uploadedImageMimeType = photoFile.type; 
+                } else {
+                    uploadedImageBase64 = null;
+                    uploadedImageMimeType = null;
+                }
+            } catch (error) {
+                console.error("照片读取失败:", error);
+                showError("照片读取失败！请检查文件格式。");
+                submitBtn.disabled = false;
+                
+                loadingArea.classList.add('hidden');
+                showContainer(inputFormContainer);
+                
+                return;
+            }
+
+            try {
+                // 2. 生成文本
+                const textData = await generateText(data);
+                latestTextData = textData; // 存储文本数据
+                
+                // 使用幻想角色的名称和现实角色的名称来生成图像
+                const fantasyRoleName = textData.character_profiles.fantasy_role.name;
+                const realisticRoleName = textData.character_profiles.realistic_persona.name;
+
+                // 3. 生成两张图片
+                const imageURLs = await generateTwoImages(
+                    fantasyRoleName, 
+                    realisticRoleName, 
+                    uploadedImageBase64,
+                    uploadedImageMimeType
+                );
+                
+                // 4. 渲染结果
+                renderResults(textData, imageURLs);
+                
+
+            } catch (error) {
+                console.error("生成失败:", error);
+                loadingMessage.textContent = "生成失败！";
+                
+                // 检查是否为 401 错误，并给出更明确的提示
+                if ((error.message || '').includes("401")) {
+                    showError("错误信息: 授权失败 (401)。请检查您的 Gemini API Key 是否有效或已正确配置。");
+                } else {
+                    showError(`错误信息: ${error.message}. 请检查输入并重试。`);
+                }
+
+                loadingArea.classList.add('hidden');
+                showContainer(inputFormContainer); // 失败时返回输入页
+                
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // 绑定事件监听器
+        form.addEventListener('submit', generateCharacter);
+        
+        // 占位函数：替换 alert() 的自定义消息框
+        function showCustomMessage(title, message) {
+            console.warn(`${title}: ${message}`);
+            // 在表单顶部添加一个临时的消息 div
+            const existingAlert = document.querySelector('#input-form-container > .bg-red-800');
+            if (existingAlert) existingAlert.remove();
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'bg-red-800 text-white p-3 rounded-xl mb-4 text-sm';
+            alertDiv.textContent = `${title}: ${message}`;
+            const formContainer = document.getElementById('input-form-container');
+            formContainer.insertBefore(alertDiv, formContainer.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        window.onload = () => {
+             // 默认折叠所有指引内容
+             // FIX: 确保在初始化时这些元素是隐藏的，而不是 active
+             document.getElementById('nlp-content').classList.remove('active');
+             document.getElementById('energy-content').classList.remove('active');
+             document.getElementById('philosophy-content').classList.remove('active');
+             document.getElementById('talent-content').classList.remove('active'); 
+             document.getElementById('model-content').classList.remove('active'); 
+             document.getElementById('tool-content').classList.remove('active'); 
+
+             document.getElementById('nlp-toggle').textContent = '+';
+             document.getElementById('energy-toggle').textContent = '+';
+             document.getElementById('philosophy-toggle').textContent = '+';
+             document.getElementById('talent-toggle').textContent = '+';
+             document.getElementById('model-toggle').textContent = '+';
+             document.getElementById('tool-toggle').textContent = '+';
+
+
+             // 强制初始状态为输入页显示，结果页隐藏
+             hideContainer(resultCard); // 确保结果卡片是隐藏的
+             showContainer(inputFormContainer);
+             
+             updateCarousel(); // 初始化轮播图位置
+        };
+
+    </script>
+</body>
+</html>
